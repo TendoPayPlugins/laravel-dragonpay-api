@@ -12,22 +12,23 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreateUserLifetimeIdsTable extends Migration
 {
-    public function up() {
-        Schema::create('dp_user_lifetime_ids', function(Blueprint $table) {
+    public function up()
+    {
+        Schema::create('dp_user_lifetime_ids', function (Blueprint $table) {
             $table->increments('id');
-
-            // todo not sure if this should or should not be unique; if yes, then we can have only one userLifetimeID
-            // which should be fine
-            $table->string('email')->unique();
+            $table->string('email_normalized')->unique();
+            $table->string('email', 255);
             $table->string('name');
-            $table->string('prefix', 2);
-            $table->string('remarks');
+            $table->string('prefix', 2)->nullable();
+            $table->string('remarks')->nullable();
             $table->string('user_lifetime_id');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
 
-    public function down() {
+    public function down()
+    {
         Schema::dropIfExists('dp_user_lifetime_ids');
     }
 }
