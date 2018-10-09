@@ -1,11 +1,12 @@
 {
-  "name": "tendopay/dragonpay-api",
-  "description": "DragonPay Soap Client",
+  "name": "tendopay/laravel-dragonpay-api",
+  "description": "DragonPay API Integration",
   "type": "library",
   "authors": [
     {
       "name": "Robert Kłodziński",
-      "email": "robert.klodzinski@gmail.com"
+      "email": "robert.klodzinski@gmail.com",
+      "role": "developer"
     }
   ],
   "require": {
