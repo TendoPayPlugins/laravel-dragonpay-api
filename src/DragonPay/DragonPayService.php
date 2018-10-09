@@ -103,8 +103,8 @@ class DragonPayService
         $model = new DragonPayUserLifetimeId([
             'email'            => $email,
             'name'             => $name,
-            'prefix'           => $prefix,
-            'remarks'          => $remarks,
+            'prefix'           => empty($prefix) ? null : $prefix,
+            'remarks'          => empty($remarks) ? null : $remarks,
             'user_lifetime_id' => $userLifetimeId
         ]);
 
