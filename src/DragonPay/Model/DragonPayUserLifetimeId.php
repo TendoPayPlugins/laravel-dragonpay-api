@@ -8,9 +8,9 @@
 
 namespace TendoPay\Integration\DragonPay\Model;
 
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use TendoPay\Integration\DragonPay\NormalizedEmail;
 
 /**
  * @property string $name
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class DragonPayUserLifetimeId extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, NormalizedEmail;
 
     public $fillable = ['name', 'prefix', 'email', 'remarks', 'user_lifetime_id'];
 
@@ -44,6 +44,6 @@ class DragonPayUserLifetimeId extends Model
     public function setEmailAttribute($value)
     {
         $this->attributes['email']            = $value;
-        $this->attributes['email_normalized'] = trim(strtolower($value));
+        $this->attributes['email_normalized'] = $this->normalizeEmail($value);
     }
 }

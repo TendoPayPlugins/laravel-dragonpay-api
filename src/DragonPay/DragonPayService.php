@@ -17,6 +17,8 @@ use TendoPay\Integration\DragonPay\SoapClient\Type\CreateLifetimeUser;
 
 class DragonPayService
 {
+    use NormalizedEmail;
+
     private $wsdl;
     private $merchantId;
     private $password;
@@ -43,7 +45,7 @@ class DragonPayService
      */
     public function getUserLifetimeId($email, $name, $prefix = '', $remarks = '')
     {
-        $userLifetimeId = $this->getUserLifetimeIdFromDatabase();
+        $userLifetimeId = $this->getUserLifetimeIdFromDatabase($email);
 
         if ( ! empty($userLifetimeId)) {
             return $userLifetimeId;
@@ -79,15 +81,18 @@ class DragonPayService
     /**
      * Retrieves the `user_lifetime_id` from `dp_user_lifetime_ids` table if exists, or null otherwise.
      *
+     * @param string $email email of the customer to search for his userLifetimeID
+     *
      * @return null|string `user_lifetime_id` if exists in table `dp_user_lifetime_ids`, or null otherwise
      */
-    private function getUserLifetimeIdFromDatabase()
+    private function getUserLifetimeIdFromDatabase($email)
     {
         /** @var DragonPayUserLifetimeId $userLifetimeIdEntity */
-        $userLifetimeIdEntity = DragonPayUserLifetimeId::where('email_normalized')->first();
+        $userLifetimeIdEntity =
+            DragonPayUserLifetimeId::where('email_normalized', $this->normalizeEmail($email))->first();
 
         if ( ! empty($userLifetimeIdEntity)) {
-            return $userLifetimeIdEntity->email_normalized;
+            return $userLifetimeIdEntity->user_lifetime_id;
         }
 
         return null;
