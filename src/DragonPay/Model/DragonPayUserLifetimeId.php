@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * @property string $name
  * @property string $email
+ * @property string $email_normalized
  * @property string $prefix
  * @property string $remarks
  * @property string $userLifetimeId
@@ -34,6 +35,12 @@ class DragonPayUserLifetimeId extends Model
      */
     protected $dates = ['deleted_at'];
 
+    /**
+     * Sets the email value passed to the model. Also prepares normalized version of the email
+     * by trimming it and making it lowercase.
+     *
+     * @param string $value email value passed to the model
+     */
     public function setEmailAttribute($value)
     {
         $this->attributes['email']            = $value;

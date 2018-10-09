@@ -28,8 +28,27 @@ class DragonPayService
         $this->password   = config('services.dragonpay.merchant_password');
     }
 
-    public function createLifetimeId($email, $name, $prefix = '', $remarks = '')
+    /**
+     * Retrieves the userLifetimeID from the database, or tries to create it otherwise. Throws exceptions if
+     * API integration with DragonPay is not configured properly or
+     *
+     * @param string $email customer email
+     * @param string $name customer name
+     * @param string $prefix (optional)
+     * @param string $remarks (optional)
+     *
+     * @return string userLifetimeId
+     * @throws \Exception if the API integration is not properly configured, or if there was an issue while trying to
+     * communicate with DragonPay API.
+     */
+    public function getUserLifetimeId($email, $name, $prefix = '', $remarks = '')
     {
+        $userLifetimeId = $this->getUserLifetimeIdFromDatabase();
+
+        if ( ! empty($userLifetimeId)) {
+            return $userLifetimeId;
+        }
+
         if (empty($this->wsdl) || empty($this->merchantId) || empty($this->password)) {
             throw new \Exception('No configuration for DragonPay API found.');
         }
@@ -46,9 +65,32 @@ class DragonPayService
 
         $userLifetimeId = $response->getResult()->CreateLifetimeUserResult;
 
+        if (empty($userLifetimeId)) {
+            throw new \Exception(
+                sprintf('Could not create userLifetimeID for: email=%s, name=%s, prefix=%s, remarks=%s]',
+                    $email, $name, $prefix, $remarks));
+        }
+
         $this->saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '');
 
-        return $response;
+        return $userLifetimeId;
+    }
+
+    /**
+     * Retrieves the `user_lifetime_id` from `dp_user_lifetime_ids` table if exists, or null otherwise.
+     *
+     * @return null|string `user_lifetime_id` if exists in table `dp_user_lifetime_ids`, or null otherwise
+     */
+    private function getUserLifetimeIdFromDatabase()
+    {
+        /** @var DragonPayUserLifetimeId $userLifetimeIdEntity */
+        $userLifetimeIdEntity = DragonPayUserLifetimeId::where('email_normalized')->first();
+
+        if ( ! empty($userLifetimeIdEntity)) {
+            return $userLifetimeIdEntity->email_normalized;
+        }
+
+        return null;
     }
 
     private function saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '')
@@ -60,8 +102,6 @@ class DragonPayService
             'remarks'          => $remarks,
             'user_lifetime_id' => $userLifetimeId
         ]);
-
-        // todo should we update the email first? or maybe just add another record for the same email?
 
         $model->save();
     }

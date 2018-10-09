@@ -13,7 +13,7 @@ use Illuminate\Support\ServiceProvider;
 class DragonPayServiceProvider extends ServiceProvider
 {
     /**
-     * Perform post-registration booting of services.
+     * Performs post-registration booting of `DragonPayService`. Loads the migration files.
      *
      * @return void
      */
