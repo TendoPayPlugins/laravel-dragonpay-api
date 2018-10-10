@@ -25,9 +25,9 @@ class DragonPayService
 
     public function __construct()
     {
-        $this->wsdl       = config('services.dragonpay.wsdl');
-        $this->merchantId = config('services.dragonpay.merchant_id');
-        $this->password   = config('services.dragonpay.merchant_password');
+        $this->wsdl       = config('dragonpay.wsdl');
+        $this->merchantId = config('dragonpay.merchant_id');
+        $this->password   = config('dragonpay.merchant_password');
     }
 
     /**
