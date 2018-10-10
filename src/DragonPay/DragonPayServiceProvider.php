@@ -23,6 +23,8 @@ class DragonPayServiceProvider extends ServiceProvider
             return new DragonPayService();
         });
 
+        $this->app->configPath(__DIR__ . '/../../config');
+
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
     }
 
