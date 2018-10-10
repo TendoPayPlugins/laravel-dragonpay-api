@@ -7,7 +7,7 @@
  */
 
 return [
-    'wsdl'              => env('DRAGONPAY_WSDL1'),
-    'merchant_id'       => env('DRAGONPAY_MERCHANT_ID1'),
-    'merchant_password' => env('DRAGONPAY_MERCHANT_PASSWORD1'),
+    'wsdl'              => env('DRAGONPAY_WSDL'),
+    'merchant_id'       => env('DRAGONPAY_MERCHANT_ID'),
+    'merchant_password' => env('DRAGONPAY_MERCHANT_PASSWORD'),
 ];
