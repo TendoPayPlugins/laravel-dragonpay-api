@@ -26,7 +26,7 @@ class DragonPayUserLifetimeId extends Model
 
     public $fillable = ['name', 'prefix', 'email', 'remarks', 'user_lifetime_id'];
 
-    public $table = 'dp_user_lifetime_ids';
+    public $table = 'dragonpay_user_lifetime_ids';
 
     /**
      * The attributes that should be mutated to dates.
