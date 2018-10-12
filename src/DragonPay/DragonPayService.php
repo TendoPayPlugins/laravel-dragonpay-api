@@ -19,6 +19,11 @@ class DragonPayService
 {
     use NormalizedEmail;
 
+    /**
+     * @var string $wsdl the wsdl URL of the DragonPay SOAP API
+     * @var string $merchantId dragonpay merchant ID
+     * @var string $password dragonpay merchant password
+     */
     private $wsdl;
     private $merchantId;
     private $password;
