@@ -28,11 +28,20 @@ class DragonPayService
     private $merchantId;
     private $password;
 
+    /**
+     * DragonPayService constructor.
+     *
+     * @throws DragonPayConfigurationException if the integration wasn't configured.
+     */
     public function __construct()
     {
         $this->wsdl       = config('dragonpay.wsdl');
         $this->merchantId = config('dragonpay.merchant_id');
         $this->password   = config('dragonpay.merchant_password');
+
+        if (empty($this->wsdl) || empty($this->merchantId) || empty($this->password)) {
+            throw new DragonPayConfigurationException('No configuration for DragonPay API found.');
+        }
     }
 
     /**
@@ -54,10 +63,6 @@ class DragonPayService
 
         if ( ! empty($userLifetimeId)) {
             return $userLifetimeId;
-        }
-
-        if (empty($this->wsdl) || empty($this->merchantId) || empty($this->password)) {
-            throw new \Exception('No configuration for DragonPay API found.');
         }
 
         $clientFactory = new ClientFactory(DragonPayClient::class);
