@@ -78,7 +78,7 @@ class DragonPayService
         $userLifetimeId = $response->getResult()->CreateLifetimeUserResult;
 
         if (empty($userLifetimeId)) {
-            throw new \Exception(
+            throw new CreateUserLifetimeIdException(
                 sprintf('Could not create userLifetimeID for: email=%s, name=%s, prefix=%s, remarks=%s]',
                     $email, $name, $prefix, $remarks));
         }
