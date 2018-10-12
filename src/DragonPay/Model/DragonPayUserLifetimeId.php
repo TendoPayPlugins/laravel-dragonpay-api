@@ -33,7 +33,7 @@ class DragonPayUserLifetimeId extends Model
      *
      * @var array
      */
-    protected $dates = ['deleted_at'];
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
     /**
      * Sets the email value passed to the model. Also prepares normalized version of the email
