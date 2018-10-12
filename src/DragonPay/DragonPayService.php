@@ -108,6 +108,15 @@ class DragonPayService
         return null;
     }
 
+    /**
+     * Saves `userLifetieId` in the database (along with the parameters passed to the DragonPay endpoint).
+     *
+     * @param string $userLifetimeId userLifetimeId received from the DragonPay
+     * @param string $email
+     * @param string $name
+     * @param string $prefix
+     * @param string $remarks
+     */
     private function saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '')
     {
         $model = new DragonPayUserLifetimeId([
