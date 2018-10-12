@@ -116,6 +116,8 @@ class DragonPayService
      * @param string $name
      * @param string $prefix
      * @param string $remarks
+     *
+     * @throws SaveUserLifetimeIdException if we couldn't save `userLifetimeId` in the database.
      */
     private function saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '')
     {
@@ -127,6 +129,8 @@ class DragonPayService
             'user_lifetime_id' => $userLifetimeId
         ]);
 
-        $model->save();
+        if ( ! $model->save()) {
+            throw new SaveUserLifetimeIdException('Could not save the userLifetimeId in the database');
+        }
     }
 }
