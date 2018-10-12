@@ -14,7 +14,7 @@ class CreateUserLifetimeIdsTable extends Migration
 {
     public function up()
     {
-        Schema::create('dp_user_lifetime_ids', function (Blueprint $table) {
+        Schema::create('dragonpay_user_lifetime_ids', function (Blueprint $table) {
             $table->increments('id');
             $table->string('email_normalized')->unique();
             $table->string('email', 255);
@@ -29,6 +29,6 @@ class CreateUserLifetimeIdsTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('dp_user_lifetime_ids');
+        Schema::dropIfExists('dragonpay_user_lifetime_ids');
     }
 }
