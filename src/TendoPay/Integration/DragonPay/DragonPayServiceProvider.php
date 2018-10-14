@@ -23,9 +23,9 @@ class DragonPayServiceProvider extends ServiceProvider
             return new DragonPayService();
         });
 
-        $this->mergeConfigFrom(__DIR__ . '/../../config/laravel.php', 'dragonpay');
+        $this->mergeConfigFrom(__DIR__ . '/../../../../config/laravel.php', 'dragonpay');
 
-        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../../../../migrations');
     }
 
     /**
