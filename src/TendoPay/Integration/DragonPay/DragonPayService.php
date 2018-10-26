@@ -110,7 +110,7 @@ class DragonPayService
             throw new TransactionNotFoundException("Could not find transaction [$refno] on DragonPay");
         }
 
-        return $response;
+        return $response->GetTxnResult;
     }
 
     /**
