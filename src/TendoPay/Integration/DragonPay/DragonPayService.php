@@ -14,19 +14,23 @@ use Phpro\SoapClient\Type\MixedResult;
 use TendoPay\Integration\DragonPay\Model\DragonPayUserLifetimeId;
 use TendoPay\Integration\DragonPay\SoapClient\DragonPayClient;
 use TendoPay\Integration\DragonPay\SoapClient\Type\CreateLifetimeUser;
+use TendoPay\Integration\DragonPay\SoapClient\Type\GetTxn;
 
 class DragonPayService
 {
     use NormalizedEmail;
 
-    /**
-     * @var string $wsdl the wsdl URL of the DragonPay SOAP API
-     * @var string $merchantId dragonpay merchant ID
-     * @var string $password dragonpay merchant password
-     */
+    /** @var string $wsdl the wsdl URL of the DragonPay SOAP API */
     private $wsdl;
+
+    /** @var string $merchantId dragonpay merchant ID */
     private $merchantId;
+
+    /** @var string $password dragonpay merchant password */
     private $password;
+
+    /** @var DragonPayClient $client */
+    private $client;
 
     /**
      * DragonPayService constructor.
@@ -65,11 +69,7 @@ class DragonPayService
             return $userLifetimeId;
         }
 
-        $clientFactory = new ClientFactory(DragonPayClient::class);
-        $clientBuilder = new ClientBuilder($clientFactory, $this->wsdl, []);
-
-        /** @var DragonPayClient $client */
-        $client = $clientBuilder->build();
+        $client = $this->getClient();
 
         /** @var MixedResult $response */
         $response = $client->createLifetimeUser(new CreateLifetimeUser($this->merchantId, $this->password, $prefix,
@@ -86,6 +86,47 @@ class DragonPayService
         $this->saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '');
 
         return $userLifetimeId;
+    }
+
+    /**
+     * Retrieves the transaction details from DragonPay.
+     *
+     * @param string $refno transaction reference number
+     *
+     * @return \stdClass response returned from DragonPay API
+     *
+     * @throws TransactionNotFoundException when no such transaction found on DragonPay
+     */
+    public function getTransaction($refno): \stdClass
+    {
+        $client = $this->getClient();
+
+        /** @var MixedResult $response */
+        $response = $client->getTxn(new GetTxn($this->merchantId, $this->password, $refno));
+        $response = $response->getResult();
+
+        $responseArray = (array)$response;
+        if (empty($responseArray)) {
+            throw new TransactionNotFoundException("Could not find transaction [$refno] on DragonPay");
+        }
+
+        return $response;
+    }
+
+    /**
+     * Returns API client if already created, creates and caches new otherwise.
+     *
+     * @return DragonPayClient cached or new client
+     */
+    private function getClient(): DragonPayClient
+    {
+        if ($this->client == null) {
+            $clientFactory = new ClientFactory(DragonPayClient::class);
+            $clientBuilder = new ClientBuilder($clientFactory, $this->wsdl, []);
+            $this->client  = $clientBuilder->build();
+        }
+
+        return $this->client;
     }
 
     /**
