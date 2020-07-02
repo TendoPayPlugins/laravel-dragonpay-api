@@ -378,7 +378,7 @@
                 "symfony/console": "^4.1",
                 "symfony/debug": "^4.1",
                 "symfony/finder": "^4.1",
-                "symfony/http-foundation": "^4.1",
+                "symfony/http-foundation": "^4.2",
                 "symfony/http-kernel": "^4.1",
                 "symfony/process": "^4.1",
                 "symfony/routing": "^4.1",
@@ -1525,16 +1525,16 @@
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v4.1.6",
+            "version": "v4.2.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "d528136617ff24f530e70df9605acc1b788b08d4"
+                "reference": "2ae778ff4a1f8baba7724db1ca977ada3b796749"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/d528136617ff24f530e70df9605acc1b788b08d4",
-                "reference": "d528136617ff24f530e70df9605acc1b788b08d4",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/2ae778ff4a1f8baba7724db1ca977ada3b796749",
+                "reference": "2ae778ff4a1f8baba7724db1ca977ada3b796749",
                 "shasum": ""
             },
             "require": {
