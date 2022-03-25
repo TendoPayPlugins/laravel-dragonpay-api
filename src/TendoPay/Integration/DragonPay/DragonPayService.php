@@ -1,16 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: robert
- * Date: 06.10.2018
- * Time: 23:39
- */
 
 namespace TendoPay\Integration\DragonPay;
 
 use Phpro\SoapClient\ClientBuilder;
 use Phpro\SoapClient\ClientFactory;
+use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapEngineFactory;
+use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapOptions;
 use Phpro\SoapClient\Type\MixedResult;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use TendoPay\Integration\DragonPay\Model\DragonPayUserLifetimeId;
 use TendoPay\Integration\DragonPay\SoapClient\DragonPayClient;
 use TendoPay\Integration\DragonPay\SoapClient\Type\CreateLifetimeUser;
@@ -121,9 +118,18 @@ class DragonPayService
     private function getClient(): DragonPayClient
     {
         if ($this->client == null) {
-            $clientFactory = new ClientFactory(DragonPayClient::class);
-            $clientBuilder = new ClientBuilder($clientFactory, $this->wsdl, []);
-            $this->client  = $clientBuilder->build();
+            $engine = ExtSoapEngineFactory::fromOptions(
+                ExtSoapOptions::defaults($wsdl, $oapOptions)
+                    ->withWsdlProvider($wsdlProvider)
+                    ->withClassMap(DragonPayClient::getCollection())
+                    ->withTypeMap($typeConverters) // You could also use getTypeMap and add / overwrite
+            );
+
+            $dispatcher = new EventDispatcher();
+            $dispatcher->addSubscriber(new LogPlugin($logger));
+            $dispatcher->addSubscriber(new ValidatorPlugin($validator));
+
+            return new DragonPayClient($engine, $dispatcher);
         }
 
         return $this->client;
