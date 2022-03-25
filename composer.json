@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">=7",
-    "laravel/framework": "5.x|6.x",
+    "laravel/framework": "5.x|6.x|7.x",
     "phpro/soap-client": "^0.7.7"
   },
   "autoload": {
