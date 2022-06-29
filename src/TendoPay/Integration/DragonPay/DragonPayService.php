@@ -116,10 +116,11 @@ class DragonPayService
     private function getClient(): DragonPayClient
     {
         if (null === $this->client) {
-            $engine = ExtSoapEngineFactory::fromOptions(
-                ExtSoapOptions::defaults($this->wsdl)
+            $engine = \Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapEngineFactory::fromOptions(
+                \Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapOptions::defaults($this->wsdl, [])
             );
-            $this->client = new DragonPayClient($engine);
+            $eventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
+            $this->client = new \TendoPay\Integration\DragonPay\SoapClient\DragonPayClient($engine, $eventDispatcher);
         }
 
         return $this->client;
