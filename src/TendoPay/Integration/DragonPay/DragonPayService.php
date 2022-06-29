@@ -118,18 +118,9 @@ class DragonPayService
     private function getClient(): DragonPayClient
     {
         if ($this->client == null) {
-            $engine = ExtSoapEngineFactory::fromOptions(
-                ExtSoapOptions::defaults($wsdl, $oapOptions)
-                    ->withWsdlProvider($wsdlProvider)
-                    ->withClassMap(DragonPayClient::getCollection())
-                    ->withTypeMap($typeConverters) // You could also use getTypeMap and add / overwrite
-            );
-
-            $dispatcher = new EventDispatcher();
-            $dispatcher->addSubscriber(new LogPlugin($logger));
-            $dispatcher->addSubscriber(new ValidatorPlugin($validator));
-
-            return new DragonPayClient($engine, $dispatcher);
+            $clientFactory = new ClientFactory(DragonPayClient::class);
+            $clientBuilder = new ClientBuilder($clientFactory, $this->wsdl, []);
+            $this->client  = $clientBuilder->build();
         }
 
         return $this->client;
