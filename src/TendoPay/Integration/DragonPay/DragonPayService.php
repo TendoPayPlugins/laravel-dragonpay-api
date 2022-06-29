@@ -2,8 +2,6 @@
 
 namespace TendoPay\Integration\DragonPay;
 
-use Phpro\SoapClient\ClientBuilder;
-use Phpro\SoapClient\ClientFactory;
 use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapEngineFactory;
 use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapOptions;
 use Phpro\SoapClient\Type\MixedResult;
@@ -117,10 +115,11 @@ class DragonPayService
      */
     private function getClient(): DragonPayClient
     {
-        if ($this->client == null) {
-            $clientFactory = new ClientFactory(DragonPayClient::class);
-            $clientBuilder = new ClientBuilder($clientFactory, $this->wsdl, []);
-            $this->client  = $clientBuilder->build();
+        if (null === $this->client) {
+            $engine = ExtSoapEngineFactory::fromOptions(
+                ExtSoapOptions::defaults($this->wsdl)
+            );
+            $this->client = new DragonPayClient($engine);
         }
 
         return $this->client;
