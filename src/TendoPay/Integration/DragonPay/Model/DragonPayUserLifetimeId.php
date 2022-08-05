@@ -11,6 +11,7 @@ namespace TendoPay\Integration\DragonPay\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use TendoPay\Integration\DragonPay\NormalizedEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property string $name
@@ -22,7 +23,9 @@ use TendoPay\Integration\DragonPay\NormalizedEmail;
  */
 class DragonPayUserLifetimeId extends Model
 {
-    use SoftDeletes, NormalizedEmail;
+    use SoftDeletes;
+    use NormalizedEmail;
+    use HasFactory;
 
     public $fillable = ['name', 'prefix', 'email', 'remarks', 'user_lifetime_id'];
 
