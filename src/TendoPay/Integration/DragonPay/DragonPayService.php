@@ -2,14 +2,19 @@
 
 namespace TendoPay\Integration\DragonPay;
 
+use Carbon\Carbon;
 use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapEngineFactory;
 use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapOptions;
 use Phpro\SoapClient\Type\MixedResult;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use TendoPay\Integration\DragonPay\Model\DragonPayUserLifetimeId;
 use TendoPay\Integration\DragonPay\SoapClient\DragonPayClient;
+use TendoPay\Integration\DragonPay\SoapClient\DragonPayClientFactory;
+use TendoPay\Integration\DragonPay\SoapClient\DragonPayClientInterface;
 use TendoPay\Integration\DragonPay\SoapClient\Type\CreateLifetimeUser;
+use TendoPay\Integration\DragonPay\SoapClient\Type\CreateLifetimeUserResponse;
 use TendoPay\Integration\DragonPay\SoapClient\Type\GetTxn;
+use TendoPay\Integration\DragonPay\SoapClient\Type\GetTxnResponse;
+use TendoPay\Integration\DragonPay\SoapClient\Type\Transaction;
 
 class DragonPayService
 {
@@ -34,9 +39,9 @@ class DragonPayService
      */
     public function __construct()
     {
-        $this->wsdl       = config('dragonpay.wsdl');
+        $this->wsdl = config('dragonpay.wsdl');
         $this->merchantId = config('dragonpay.merchant_id');
-        $this->password   = config('dragonpay.merchant_password');
+        $this->password = config('dragonpay.merchant_password');
 
         if (empty($this->wsdl) || empty($this->merchantId) || empty($this->password)) {
             throw new DragonPayConfigurationException('No configuration for DragonPay API found.');
@@ -60,25 +65,34 @@ class DragonPayService
     {
         $userLifetimeId = $this->getUserLifetimeIdFromDatabase($email);
 
-        if ( ! empty($userLifetimeId)) {
+        if (!empty($userLifetimeId)) {
             return $userLifetimeId;
         }
 
         $client = $this->getClient();
 
         /** @var MixedResult $response */
-        $response = $client->createLifetimeUser(new CreateLifetimeUser($this->merchantId, $this->password, $prefix,
-            $name, $email, $remarks));
+        $response = $client->createLifetimeUser(
+            new CreateLifetimeUser($this->merchantId, $this->password, $prefix, $name, $email, $remarks)
+        );
 
-        $userLifetimeId = $response->getResult()->CreateLifetimeUserResult;
+        $userLifetimeId = $response instanceof CreateLifetimeUserResponse
+            ? $response->getCreateLifetimeUserResult()
+            : $response->getResult()->CreateLifetimeUserResult;
 
         if (empty($userLifetimeId)) {
             throw new CreateUserLifetimeIdException(
-                sprintf('Could not create userLifetimeID for: email=%s, name=%s, prefix=%s, remarks=%s]',
-                    $email, $name, $prefix, $remarks));
+                sprintf(
+                    'Could not create userLifetimeID for: email=%s, name=%s, prefix=%s, remarks=%s]',
+                    $email,
+                    $name,
+                    $prefix,
+                    $remarks
+                )
+            );
         }
 
-        $this->saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '');
+        $this->saveUserLifetimeId($userLifetimeId, $email, $name, $prefix, $remarks);
 
         return $userLifetimeId;
     }
@@ -96,16 +110,72 @@ class DragonPayService
     {
         $client = $this->getClient();
 
-        /** @var MixedResult $response */
+        /** @var MixedResult|Transaction $response */
         $response = $client->getTxn(new GetTxn($this->merchantId, $this->password, $refno));
-        $response = $response->getResult();
 
-        $responseArray = (array)$response;
+        if ($response instanceof GetTxnResponse) {
+            /** @var Transaction $result */
+            $result = $response->getGetTxnResult();
+
+            //[refDate:TendoPay\Integration\DragonPay\SoapClient\Type\Transaction:private] =>
+            // DateTimeImmutable Object (
+            //     [date] => 2022-08-17 10:21:54.924907
+            //     [timezone_type] => 3
+            //     [timezone] => Asia/Manila
+            //  )
+            $parseDate = static function ($beforeDate): ?string {
+                if ($beforeDate instanceof \DateTimeImmutable) {
+                    return $beforeDate->format(\DateTimeImmutable::ATOM);
+                }
+
+                if ($beforeDate instanceof \DateTimeInterface || is_string($beforeDate)) {
+                    return Carbon::parse($beforeDate)->toIso8601String();
+                }
+
+                if ($beforeDate instanceof \stdClass && ($refDate->date ?? null)) {
+                    return Carbon::parse($beforeDate->date)->toIso8601String();
+                }
+                return null;
+            };
+
+
+            return json_decode(
+                json_encode([
+                    'refNo' => $result->getRefNo(),
+                    'refDate' => $parseDate($result->getRefDate()),
+                    'merchantId' => $result->getMerchantId(),
+                    'merchantTxnId' => $result->getMerchantTxnId(),
+                    'amount' => $result->getAmount(),
+                    'currency' => $result->getCurrency(),
+                    'description' => $result->getDescription(),
+                    'email' => $result->getEmail(),
+                    'status' => $result->getStatus(),
+                    'procId' => $result->getProcId(),
+                    'procMsg' => $result->getProcMsg(),
+                    'billerId' => $result->getBillerId(),
+                    'settleDate' => $parseDate($result->getSettleDate()),
+                    'param1' => $result->getParam1(),
+                    'param2' => $result->getParam2(),
+                    'mobileNo' => $result->getMobileNo(),
+                    'amountDue' => $result->getAmountDue(),
+                    'expiryDate' => $parseDate($result->getExpiryDate()),
+                    'fee' => $result->getFee(),
+                ], JSON_THROW_ON_ERROR),
+                false,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+        }
+
+        // Legacy
+        $result = $response->getResult();
+
+        $responseArray = (array)$result;
         if (empty($responseArray)) {
             throw new TransactionNotFoundException("Could not find transaction [$refno] on DragonPay");
         }
 
-        return $response->GetTxnResult;
+        return $result->GetTxnResult;
     }
 
     /**
@@ -116,14 +186,16 @@ class DragonPayService
     private function getClient(): DragonPayClient
     {
         if (null === $this->client) {
-            $engine = \Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapEngineFactory::fromOptions(
-                \Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapOptions::defaults($this->wsdl, [])
-            );
-            $eventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
-            $this->client = new \TendoPay\Integration\DragonPay\SoapClient\DragonPayClient($engine, $eventDispatcher);
+            $this->client = DragonPayClientFactory::factory($this->wsdl);
         }
 
         return $this->client;
+    }
+
+    public function setClient(DragonPayClientInterface $client): self
+    {
+        $this->client = $client;
+        return $this;
     }
 
     /**
@@ -136,10 +208,10 @@ class DragonPayService
     private function getUserLifetimeIdFromDatabase($email)
     {
         /** @var DragonPayUserLifetimeId $userLifetimeIdEntity */
-        $userLifetimeIdEntity =
-            DragonPayUserLifetimeId::where('email_normalized', $this->normalizeEmail($email))->first();
+        $userLifetimeIdEntity
+            = DragonPayUserLifetimeId::where('email_normalized', $this->normalizeEmail($email))->first();
 
-        if ( ! empty($userLifetimeIdEntity)) {
+        if (!empty($userLifetimeIdEntity)) {
             return $userLifetimeIdEntity->user_lifetime_id;
         }
 
@@ -160,14 +232,14 @@ class DragonPayService
     private function saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '')
     {
         $model = new DragonPayUserLifetimeId([
-            'email'            => $email,
-            'name'             => $name,
-            'prefix'           => empty($prefix) ? null : $prefix,
-            'remarks'          => empty($remarks) ? null : $remarks,
-            'user_lifetime_id' => $userLifetimeId
+            'email' => $email,
+            'name' => $name,
+            'prefix' => empty($prefix) ? null : $prefix,
+            'remarks' => empty($remarks) ? null : $remarks,
+            'user_lifetime_id' => $userLifetimeId,
         ]);
 
-        if ( ! $model->save()) {
+        if (!$model->save()) {
             throw new SaveUserLifetimeIdException('Could not save the userLifetimeId in the database');
         }
     }
