@@ -3,8 +3,6 @@
 namespace TendoPay\Integration\DragonPay;
 
 use Carbon\Carbon;
-use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapEngineFactory;
-use Phpro\SoapClient\Soap\Driver\ExtSoap\ExtSoapOptions;
 use Phpro\SoapClient\Type\MixedResult;
 use TendoPay\Integration\DragonPay\Model\DragonPayUserLifetimeId;
 use TendoPay\Integration\DragonPay\SoapClient\DragonPayClient;
@@ -21,16 +19,16 @@ class DragonPayService
     use NormalizedEmail;
 
     /** @var string $wsdl the wsdl URL of the DragonPay SOAP API */
-    private $wsdl;
+    private string $wsdl;
 
     /** @var string $merchantId dragonpay merchant ID */
-    private $merchantId;
+    private string $merchantId;
 
     /** @var string $password dragonpay merchant password */
-    private $password;
+    private string $password;
 
     /** @var DragonPayClient $client */
-    private $client;
+    private DragonPayClient $client;
 
     /**
      * DragonPayService constructor.
@@ -52,20 +50,15 @@ class DragonPayService
      * Retrieves the userLifetimeID from the database, or tries to create it otherwise. Throws exceptions if
      * API integration with DragonPay is not configured properly or
      *
-     * @param string $email customer email
-     * @param string $name customer name
-     * @param string $prefix (optional)
-     * @param string $remarks (optional)
-     *
      * @return string userLifetimeId
      * @throws \Exception if the API integration is not properly configured, or if there was an issue while trying to
      * communicate with DragonPay API.
      */
-    public function getUserLifetimeId($email, $name, $prefix = '', $remarks = '')
+    public function getUserLifetimeId(string $email, string $name, ?string $prefix = '', ?string $remarks = ''): string
     {
         $userLifetimeId = $this->getUserLifetimeIdFromDatabase($email);
 
-        if (!empty($userLifetimeId)) {
+        if (! empty($userLifetimeId)) {
             return $userLifetimeId;
         }
 
@@ -104,9 +97,9 @@ class DragonPayService
      *
      * @return \stdClass response returned from DragonPay API
      *
-     * @throws TransactionNotFoundException when no such transaction found on DragonPay
+     * @throws TransactionNotFoundException|\JsonException when no such transaction found on DragonPay
      */
-    public function getTransaction($refno): \stdClass
+    public function getTransaction(string $refno): \stdClass
     {
         $client = $this->getClient();
 
@@ -135,6 +128,7 @@ class DragonPayService
                 if ($beforeDate instanceof \stdClass && ($refDate->date ?? null)) {
                     return Carbon::parse($beforeDate->date)->toIso8601String();
                 }
+
                 return null;
             };
 
@@ -170,7 +164,7 @@ class DragonPayService
         // Legacy
         $result = $response->getResult();
 
-        $responseArray = (array)$result;
+        $responseArray = (array) $result;
         if (empty($responseArray)) {
             throw new TransactionNotFoundException("Could not find transaction [$refno] on DragonPay");
         }
@@ -195,6 +189,7 @@ class DragonPayService
     public function setClient(DragonPayClientInterface $client): self
     {
         $this->client = $client;
+
         return $this;
     }
 
@@ -205,13 +200,14 @@ class DragonPayService
      *
      * @return null|string `user_lifetime_id` if exists in table `dp_user_lifetime_ids`, or null otherwise
      */
-    private function getUserLifetimeIdFromDatabase($email)
+    private function getUserLifetimeIdFromDatabase(string $email): ?string
     {
         /** @var DragonPayUserLifetimeId $userLifetimeIdEntity */
-        $userLifetimeIdEntity
-            = DragonPayUserLifetimeId::where('email_normalized', $this->normalizeEmail($email))->first();
+        $userLifetimeIdEntity = DragonPayUserLifetimeId::query()
+            ->where('email_normalized', $this->normalizeEmail($email))
+            ->first();
 
-        if (!empty($userLifetimeIdEntity)) {
+        if ($userLifetimeIdEntity !== null) {
             return $userLifetimeIdEntity->user_lifetime_id;
         }
 
@@ -219,18 +215,23 @@ class DragonPayService
     }
 
     /**
-     * Saves `userLifetieId` in the database (along with the parameters passed to the DragonPay endpoint).
+     * Saves `userLifetimeId` in the database (along with the parameters passed to the DragonPay endpoint).
      *
      * @param string $userLifetimeId userLifetimeId received from the DragonPay
      * @param string $email
      * @param string $name
-     * @param string $prefix
-     * @param string $remarks
+     * @param ?string $prefix
+     * @param ?string $remarks
      *
      * @throws SaveUserLifetimeIdException if we couldn't save `userLifetimeId` in the database.
      */
-    private function saveUserLifetimeId($userLifetimeId, $email, $name, $prefix = '', $remarks = '')
-    {
+    private function saveUserLifetimeId(
+        string $userLifetimeId,
+        string $email,
+        string $name,
+        ?string $prefix = '',
+        ?string $remarks = ''
+    ): void {
         $model = new DragonPayUserLifetimeId([
             'email' => $email,
             'name' => $name,
@@ -239,7 +240,7 @@ class DragonPayService
             'user_lifetime_id' => $userLifetimeId,
         ]);
 
-        if (!$model->save()) {
+        if (! $model->save()) {
             throw new SaveUserLifetimeIdException('Could not save the userLifetimeId in the database');
         }
     }

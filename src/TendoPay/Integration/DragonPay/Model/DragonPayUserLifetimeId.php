@@ -14,12 +14,38 @@ use TendoPay\Integration\DragonPay\NormalizedEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * @property string $name
- * @property string $email
+ * TendoPay\Integration\DragonPay\Model\DragonPayUserLifetimeId
+ *
+ * @property int $id
+ * @property int|null $user_id
  * @property string $email_normalized
- * @property string $prefix
- * @property string $remarks
- * @property string $userLifetimeId
+ * @property string $email
+ * @property string $name
+ * @property string|null $prefix
+ * @property string|null $remarks
+ * @property string $user_lifetime_id
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Database\Factories\TendoPay\Integration\DragonPay\Model\DragonPayUserLifetimeIdFactory factory(...$parameters)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId query()
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereEmailNormalized($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId wherePrefix($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereRemarks($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId whereUserLifetimeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|DragonPayUserLifetimeId withoutTrashed()
+ * @mixin \Eloquent
  */
 class DragonPayUserLifetimeId extends Model
 {
@@ -44,7 +70,7 @@ class DragonPayUserLifetimeId extends Model
      *
      * @param string $value email value passed to the model
      */
-    public function setEmailAttribute($value)
+    public function setEmailAttribute(string $value): void
     {
         $this->attributes['email']            = $value;
         $this->attributes['email_normalized'] = $this->normalizeEmail($value);

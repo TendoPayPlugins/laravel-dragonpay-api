@@ -2,17 +2,15 @@
 
 namespace TendoPay\Integration\DragonPay\SoapClient;
 
-use TendoPay\Integration\DragonPay\SoapClient\DragonPayClient;
-use TendoPay\Integration\DragonPay\SoapClient\DragonPayClassmap;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Phpro\SoapClient\Caller\EngineCaller;
+use Phpro\SoapClient\Caller\EventDispatchingCaller;
 use Phpro\SoapClient\Soap\DefaultEngineFactory;
 use Soap\ExtSoapEngine\ExtSoapOptions;
-use Phpro\SoapClient\Caller\EventDispatchingCaller;
-use Phpro\SoapClient\Caller\EngineCaller;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class DragonPayClientFactory
 {
-    public static function factory(string $wsdl) : \TendoPay\Integration\DragonPay\SoapClient\DragonPayClient
+    public static function factory(string $wsdl): DragonPayClient
     {
         $engine = DefaultEngineFactory::create(
             ExtSoapOptions::defaults($wsdl, [])
