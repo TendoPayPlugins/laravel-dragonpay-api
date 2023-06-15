@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": "^8.1",
-    "laravel/framework": "9.x",
+    "laravel/framework": "8.x|9.x",
     "symfony/http-client": "^6.1",
     "nyholm/psr7": "^1.5",
     "phpro/soap-client": "^2.2"
