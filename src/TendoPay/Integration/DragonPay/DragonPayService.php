@@ -28,7 +28,7 @@ class DragonPayService
     private string $password;
 
     /** @var DragonPayClient $client */
-    private DragonPayClient $client;
+    private ?DragonPayClient $client = null;
 
     /**
      * DragonPayService constructor.
@@ -37,9 +37,9 @@ class DragonPayService
      */
     public function __construct()
     {
-        $this->wsdl = config('dragonpay.wsdl');
-        $this->merchantId = config('dragonpay.merchant_id');
-        $this->password = config('dragonpay.merchant_password');
+        $this->wsdl = config('dragonpay.wsdl', '');
+        $this->merchantId = config('dragonpay.merchant_id', '');
+        $this->password = config('dragonpay.merchant_password', '');
 
         if (empty($this->wsdl) || empty($this->merchantId) || empty($this->password)) {
             throw new DragonPayConfigurationException('No configuration for DragonPay API found.');
