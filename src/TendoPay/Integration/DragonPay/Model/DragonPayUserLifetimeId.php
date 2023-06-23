@@ -10,6 +10,8 @@ namespace TendoPay\Integration\DragonPay\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use TendoPay\Integration\DragonPay\Event\DragonPayUserLifetimeIdCreated;
+use TendoPay\Integration\DragonPay\Event\DragonPayUserLifetimeIdUpdated;
 use TendoPay\Integration\DragonPay\NormalizedEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -37,6 +39,11 @@ class DragonPayUserLifetimeId extends Model
      * @var array
      */
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+
+    protected $dispatchesEvents = [
+        'created' => DragonPayUserLifetimeIdCreated::class,
+        'updated' => DragonPayUserLifetimeIdUpdated::class,
+    ];
 
     /**
      * Sets the email value passed to the model. Also prepares normalized version of the email
